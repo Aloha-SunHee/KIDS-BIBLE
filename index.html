@@ -119,7 +119,6 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:20}
 .dock .now{font-family:var(--display);font-size:19px}
 .dock .ctl{display:flex;gap:8px;flex-wrap:wrap}
 .dock .ctl button{font-family:var(--display);font-size:16px;border:2px solid var(--line);background:var(--card);border-radius:12px;padding:6px 12px}
-.dock .ctl button[aria-pressed="false"]{color:var(--muted);text-decoration:line-through}
 .dock .note{font-size:14px;color:var(--muted)}
 @media (max-width:520px){.opts,.modes{grid-template-columns:1fr}.opt{min-height:56px;font-size:19px}.cover{grid-template-columns:repeat(2,1fr)}.cover img:nth-child(n+5){display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -135,8 +134,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:20}
     <span class="note" id="musicNote"></span>
   </div>
   <div class="ctl">
-    <button id="bgmBtn" aria-pressed="true">🎵 배경음악</button>
-    <button id="sfxBtn" aria-pressed="true">🔔 효과음</button>
+    <button id="bgmBtn">🔇 음악 끄기</button>
   </div>
 </aside>
 
@@ -428,14 +426,19 @@ const music = (() => {
   const dock=$("#dock"), note=$("#musicNote"), now=$("#nowSong");
   const songFor = s => Object.values(SONGS).find(x=>x.stories.includes(s));
   const names = s => s.stories.map(id=>STORIES.find(x=>x.id===id).name).join(" · ");
+  const btn=$("#bgmBtn");
+  const setBtn=()=>{ btn.textContent = (on && !audio.paused) ? "🔇 음악 끄기" : "🎵 음악 켜기"; };
+  const missing=()=>{ note.textContent=`노래 파일(${cur.src})을 찾지 못했어요. GitHub에 music 폴더가 index.html과 같은 위치에 올라가 있는지 확인해 주세요.`; btn.textContent="🎵 음악 켜기"; };
   function go(){
     if(!on||!playing) return;
-    audio.play().then(()=>{ note.textContent=""; })
-      .catch(()=>{ note.textContent="음악이 안 나오면 🎵 배경음악 버튼을 두 번 눌러 주세요."; });
+    audio.play().then(()=>{ note.textContent=""; setBtn(); })
+      .catch(e=>{ setBtn();
+        if(e && e.name==="NotAllowedError") note.textContent="브라우저가 자동 재생을 막았어요. 🎵 음악 켜기 버튼을 눌러 주세요.";
+        else missing(); });
   }
-  audio.addEventListener("error",()=>{ if(audio.getAttribute("src")) note.textContent="노래 파일을 찾지 못했어요. music 폴더가 index.html과 같은 곳에 올라가 있는지 확인해 주세요."; });
-  $("#bgmBtn").onclick=e=>{ on=!on; e.currentTarget.setAttribute("aria-pressed",on); on ? go() : audio.pause(); };
-  $("#sfxBtn").onclick=e=>{ sfx.on=!sfx.on; e.currentTarget.setAttribute("aria-pressed",sfx.on); if(sfx.on) sfx.pick(true); };
+  audio.addEventListener("error",()=>{ if(audio.getAttribute("src")) { missing(); setBtn(); } });
+  audio.addEventListener("pause",setBtn); audio.addEventListener("playing",setBtn);
+  btn.onclick=()=>{ if(on && !audio.paused){ on=false; audio.pause(); } else { on=true; go(); } setBtn(); };
   return {
     play(story){
       const s=songFor(story); if(!s) return; playing=true; dock.hidden=false;
