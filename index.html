@@ -413,12 +413,12 @@ const sfx = (() => {
   };
 })();
 
-/* ===== 배경음악 (index.html 옆 music 폴더의 mp3 파일) =====
-   노래를 바꾸려면 music 폴더에 mp3를 넣고 아래 src 의 파일 이름만 바꾸면 돼요. */
+/* ===== 배경음악 (index.html과 같은 곳에 올린 mp3 파일) =====
+   노래를 바꾸려면 index.html 옆에 mp3를 올리고 아래 src 의 파일 이름만 바꾸면 돼요. */
 const SONGS = {
-  a:{src:"music/all-the-ends.mp3",  title:"All The Ends Of The Earth", stories:["adam","noah","mos"]},
-  b:{src:"music/seek-ye-first.mp3", title:"Seek Ye First",             stories:["abr","jos"]},
-  c:{src:"music/korean-song.mp3",   title:"",                          stories:["jac"]}
+  a:{src:"all-the-ends.mp3",  title:"All The Ends Of The Earth", stories:["adam","noah","mos"]},
+  b:{src:"seek-ye-first.mp3", title:"Seek Ye First",             stories:["abr","jos"]},
+  c:{src:"korean-song.mp3",   title:"",                          stories:["jac"]}
 };
 const music = (() => {
   const audio = new Audio(); audio.loop = true; audio.preload = "auto"; audio.volume = .35;
@@ -428,7 +428,7 @@ const music = (() => {
   const names = s => s.stories.map(id=>STORIES.find(x=>x.id===id).name).join(" · ");
   const btn=$("#bgmBtn");
   const setBtn=()=>{ btn.textContent = (on && !audio.paused) ? "🔇 음악 끄기" : "🎵 음악 켜기"; };
-  const missing=()=>{ note.textContent=`노래 파일(${cur.src})을 찾지 못했어요. GitHub에 music 폴더가 index.html과 같은 위치에 올라가 있는지 확인해 주세요.`; btn.textContent="🎵 음악 켜기"; };
+  const missing=()=>{ note.textContent=`노래 파일(${cur.src})을 찾지 못했어요. GitHub에 이 mp3 파일이 index.html과 같은 위치에 있는지 확인해 주세요.`; btn.textContent="🎵 음악 켜기"; };
   function go(){
     if(!on||!playing) return;
     audio.play().then(()=>{ note.textContent=""; setBtn(); })
